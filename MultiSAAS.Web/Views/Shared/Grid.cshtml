@@ -1,0 +1,120 @@
+﻿@model dynamic
+@Styles.Render("https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.4.1/jsgrid.min.css")
+@Styles.Render("https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.4.1/jsgrid-theme.min.css")
+
+<div id="jsGrid"></div>
+<div class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!--
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+      </div>
+      -->
+      <div class="modal-body">
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+@Scripts.Render("https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.4.1/jsgrid.min.js")
+
+<script>
+
+  @{
+    var props = ViewData.ModelMetadata.Properties;
+    string fields = ViewBag.Fields;
+    if (string.IsNullOrEmpty(fields))
+    {
+      fields = string.Join(",", props.Select(p => p.PropertyName).ToList());
+    }
+    var fieldList = fields.Split(',');
+  }
+
+  jsGridOptions = {
+    width: "100%",
+    autoload: true,
+
+    filtering: true,
+    editing: true,
+    sorting: true,
+    paging: true,
+
+    rowClick: function(args) {
+      $.ajax({
+        type: "GET",
+        url: "@Url.Action()/" + args.item.@Html.Raw(fieldList[0]) + "/Edit",
+        success: function(data) {
+          $('.modal')
+            .prop('class', 'modal fade') // revert to default
+            .addClass('left');
+          $('.modal').modal('show');
+          $('.modal-body').html(data);
+        }
+      });
+    },
+
+    controller: {
+      loadData: function(filter) {
+        return $.ajax({
+          type: "POST",
+          url: '@Url.Action("JSON")',
+          data: filter,
+          dataType: "json"
+        });
+      }
+    },
+
+    fields: [
+
+    @foreach (var propName in fieldList)
+    {
+      var prop = props.First(p => p.PropertyName == propName);
+      if (string.IsNullOrEmpty(fields) || fieldList.Contains(prop.PropertyName))
+      {
+        string columnType = "text";
+        string columnOptions = "";
+        if (prop.ModelType.Name == "Boolean")
+        {
+          columnType = "checkbox";
+          //columnOptions = ", sorting: false";
+        }
+        @Html.Raw("{ name: '" + prop.PropertyName + "', title:'" + prop.DisplayName + "', type: '" + columnType + "' " + columnOptions + " },")
+      }
+    }
+  {
+    type: "control",
+    modeSwitchButton: false,
+    editButton: false,
+    deleteButton: false,
+    headerTemplate:
+      function() {
+        return $("<button>")
+          .attr("type", "button")
+          .text("Add")
+          .on("click",
+            function() {
+              $.ajax({
+                type: "GET",
+                url: "@Url.Action()/Add",
+                    success: function (data) {
+                      $('.modal')
+                        .prop('class', 'modal fade') // revert to default
+                        .addClass('left');
+                      $('.modal').modal('show');
+                      $('.modal-body').html(data);
+                    }
+                  });
+                });
+          }
+        }
+    ]
+  };
+
+  if (jsGridOptions) {
+    $("#jsGrid").jsGrid(jsGridOptions);
+  }
+</script>
+
+
+

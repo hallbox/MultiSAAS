@@ -1,0 +1,47 @@
+﻿@model dynamic
+
+@using (Html.BeginForm())
+{
+  <div class="form-horizontal container body-content">
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+    @{
+      var props = ViewData.ModelMetadata.Properties;
+      string fields = ViewBag.Fields;
+      if (string.IsNullOrEmpty(fields))
+      {
+        fields = string.Join(",", props.Select(p => p.PropertyName).ToList());
+      }
+    }
+    @foreach (var propName in fields.Split(','))
+    {
+      var prop = props.First(p => p.PropertyName == propName);
+      if (prop.TemplateHint == "HiddenInput" || prop.ShowForEdit == false)
+      {
+        @Html.Hidden(prop.PropertyName)
+      }
+      else
+      {
+        if (prop.HideSurroundingHtml)
+        {
+          @Html.Editor(prop.PropertyName, prop.DataTypeName)
+        }
+        else
+        {
+          <div class="form-group">
+            @Html.BootstrapLabel(prop.PropertyName)
+            <div class="col-md-10">
+              @Html.Editor(prop.PropertyName, prop.DataTypeName)
+              @Html.ValidationMessage(prop.PropertyName)
+            </div>
+          </div>
+        }
+      }
+    }
+  </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      <button type="submit" class="btn btn-primary">Save</button>
+    </div>
+      }

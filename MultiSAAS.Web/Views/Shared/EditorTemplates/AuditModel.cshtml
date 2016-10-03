@@ -1,0 +1,22 @@
+﻿@model MultiSAAS.Web.Framework.AuditModel
+@if (Model != null)
+{
+  <div class="form-group">
+    @Html.BootstrapLabel("Created")
+    <div class="col-md-10">
+      @Html.Editor("Created", "ReadOnly")
+      @Html.ValidationMessage("Created")
+    </div>
+  </div>
+
+  if (!string.IsNullOrEmpty(Model.Updated))
+  {
+     <div class="form-group">
+       @Html.BootstrapLabel("Updated")
+       <div class="col-md-10">
+         @Html.Editor("Updated", "ReadOnly")
+         @Html.ValidationMessage("Updated")
+       </div>
+     </div>
+  }
+}
