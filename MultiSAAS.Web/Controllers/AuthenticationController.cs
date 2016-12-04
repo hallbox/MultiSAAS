@@ -9,6 +9,7 @@
   using Extensions;
   using Framework.Controllers;
   using ViewModels;
+  using Data;
 
   // using AttributeRouting.Web.Mvc;
 
@@ -35,8 +36,11 @@
         return View("Form", new LoginViewModel());
       }
 
+      var repo = new UserData();
+
       var encryptedPassword = model.Password.Encrypt();
-      var user = db.Users.FirstOrDefault(u => u.Username == model.Username && u.Password == encryptedPassword);
+      var user = repo.Authenticate(model.Username, model.Password);
+      
       if (user != null)
       {
         var identity = new ClaimsIdentity(new[]

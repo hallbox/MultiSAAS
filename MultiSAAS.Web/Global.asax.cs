@@ -10,7 +10,7 @@
   using Framework;
   using ModelMetadataProvider = Framework.ModelMetadata.ModelMetadataProvider;
   using Data;
-  using Data.Entity;
+  using Data.Entities;
   using Extensions;
 
   public class MvcApplication : HttpApplication
@@ -24,6 +24,7 @@
 
       if (settings["DefaultUserPassword"] != null && settings["DefaultUserPassword"].Value.Length > 0)
       {
+        /*
         var context = new TenantContext(Default.TenantCode);
         context.Username = Default.Username;
         context.Set<Tenant>().AddIfNotExists(new Tenant
@@ -43,6 +44,7 @@
           ExternalUsername = null
         });
         context.SaveChanges();
+        */
       }
 
       FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);

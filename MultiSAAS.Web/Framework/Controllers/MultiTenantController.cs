@@ -7,13 +7,7 @@
 
   public abstract class MultiTenantController : Controller
   {
-    // ReSharper disable once InconsistentNaming
-    public readonly TenantContext db;
-
-    protected MultiTenantController()
-    {
-      db = new TenantContext();
-    }
+    public string ConnectionString;
 
     public string TenantCode
     {
@@ -55,17 +49,19 @@
       }
       if (!string.IsNullOrEmpty(TenantCode) && TenantCode != Constants.Default.TenantCode)
       {
-        var cs = db.Tenants.Where(u => u.TenantCode == TenantCode).Select(u => u.ConnectionString).FirstOrDefault();
-        if (!string.IsNullOrEmpty(cs))
+        var repo = new TenantData();
+
+        var t = repo.Single(TenantCode);
+          
+        if (!string.IsNullOrEmpty(t.ConnectionString))
         {
-          db.Database.Connection.ConnectionString = cs;
+          ConnectionString = t.ConnectionString;
         }
       }
     }
 
     protected override void Dispose(bool disposing)
     {
-      db.Dispose();
       base.Dispose(disposing);
     }
   }

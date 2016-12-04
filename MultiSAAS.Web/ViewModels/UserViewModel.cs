@@ -2,7 +2,7 @@
 {
   using AutoMapper;
   using Heroic.AutoMapper;
-  using Data.Entity;
+  using Data.Entities;
   using Extensions;
   using Framework;
   using Framework.Extensions;

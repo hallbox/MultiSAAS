@@ -4,7 +4,7 @@ namespace MultiSAAS.Migrations
   using System.Data.Entity.Validation;
   using System.Text;
   using MultiSAAS.Data;
-  using MultiSAAS.Data.Entity;
+  using MultiSAAS.Data.Entities;
 
   internal sealed class Configuration : DbMigrationsConfiguration<TenantContext>
   {

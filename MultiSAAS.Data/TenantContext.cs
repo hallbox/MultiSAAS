@@ -5,7 +5,7 @@
   using System.Data.Entity;
   using System.Data.Entity.ModelConfiguration.Conventions;
   using System.Linq;
-  using Entity;
+  using Entities;
 
   [DbConfigurationType(typeof(DbConfiguration))]
   public class TenantContext : System.Data.Entity.DbContext

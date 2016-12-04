@@ -2,7 +2,7 @@
 {
   using AutoMapper;
   using Heroic.AutoMapper;
-  using Data.Entity;
+  using Data.Entities;
   using Framework;
 
   public class TenantViewModel : MappedViewModel, IHaveCustomMappings

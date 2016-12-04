@@ -1,19 +1,21 @@
 ﻿namespace MultiSAAS.Web.Controllers
 {
-  using System.Data.Entity;
   using System.Linq;
   using System.Net;
   using System.Threading.Tasks;
   using System.Web.Mvc;
   using AutoMapper;
-  using AutoMapper.QueryableExtensions;
-  using Data.Entity;
+  using Data.Entities;
   using Framework.Controllers;
   using Framework.Helpers;
   using ViewModels;
+  using Data;
 
   public class UsersController : MultiTenantController
   {
+    private UserData repo = new UserData();
+    private TenantData tenantRepo = new TenantData();
+
     public ActionResult Index()
     {
       ViewBag.Fields = "Username,FirstName,LastName,EmailAddress,Enabled";
@@ -23,17 +25,7 @@
     // JSON results for filtered grid
     public async Task<JsonResult> Json(string username, string firstName, string lastName, string emailAddress, bool? enabled)
     {
-      var results = await db.Users
-        .Include(u => u.ExternalTenant)
-        .Where(u =>
-          (string.IsNullOrEmpty(username) || u.Username.StartsWith(username)) &&
-          (string.IsNullOrEmpty(firstName) || u.FirstName.StartsWith(firstName)) &&
-          (string.IsNullOrEmpty(lastName) || u.LastName.StartsWith(lastName)) &&
-          (string.IsNullOrEmpty(emailAddress) || u.EmailAddress.StartsWith(emailAddress)) &&
-          (enabled == null || u.Enabled == enabled)
-        )
-        .ProjectTo<UserViewModel>()
-        .ToListAsync();
+      var results = await repo.ProjectToListAsync<UserViewModel>(username, firstName, lastName, emailAddress, enabled);
       return Json(results, JsonRequestBehavior.AllowGet);
     }
 
@@ -42,10 +34,10 @@
     {
       var model = string.IsNullOrEmpty(id)
         ? new UserViewModel() { ExternalTenant = new Framework.SelectList() }
-        : db.Users.Where(u => u.Username == id).ProjectTo<UserViewModel>().FirstOrDefault();
+        : repo.ProjectToList<UserViewModel>(id).Single();
       if (model != null)
       {
-        model.ExternalTenant = db.Tenants.ToSelectList(t => t.TenantCode, t => t.TenantName, model.ExternalTenant.SelectedValue, "");
+        model.ExternalTenant = tenantRepo.ProjectToList<TenantViewModel>().ToSelectList(t => t.TenantCode, t => t.TenantName, model.ExternalTenant.SelectedValue, "");
       }
       return FormActionResult(model, id);
     }
@@ -72,8 +64,7 @@
       {
         var entity = new User();
         Mapper.Map(vm, entity);
-        db.Users.Add(entity);
-        db.SaveChanges();
+        repo.Add(entity);
         return RedirectToAction("Index");
       }
       return Create();
@@ -93,14 +84,9 @@
     {
       if (ModelState.IsValid)
       {
-        User entity = db.Users.Find(vm.Username);
+        User entity = repo.Single(vm.Username);
         Mapper.Map(vm, entity);
-        if (string.IsNullOrEmpty(vm.Password))
-        {
-          db.Entry(entity).Property("Password").IsModified = false;
-        }
-        db.Entry(entity).State = EntityState.Modified;
-        db.SaveChanges();
+        repo.Update(entity);
         return RedirectToAction("Index");
       }
       return Edit(vm.Username);
@@ -121,9 +107,7 @@
     [ValidateAntiForgeryToken]
     public ActionResult DeleteConfirmed(string id)
     {
-      var entity = db.Users.Find(id);
-      db.Users.Remove(entity);
-      db.SaveChanges();
+      repo.Remove(id);
       return RedirectToAction("Index");
     }
   }

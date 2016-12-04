@@ -1,17 +1,18 @@
 ﻿namespace MultiSAAS.Web.Controllers
 {
-  using System.Data.Entity;
   using System.Linq;
   using System.Threading.Tasks;
   using System.Web.Mvc;
   using AutoMapper;
-  using AutoMapper.QueryableExtensions;
-  using Data.Entity;
+  using Data.Entities;
   using Framework.Controllers;
   using ViewModels;
+  using Data;
 
   public class TenantsController : MultiTenantController
   {
+    private TenantData repo = new TenantData();
+
     #region GET
 
     // GET: Tenants
@@ -57,8 +58,7 @@
       {
         var entity = new Tenant();
         Mapper.Map(vm, entity);
-        db.Tenants.Add(entity);
-        db.SaveChanges();
+        repo.Add(entity);
         return RedirectToAction("Index");
       }
       return Create();
@@ -70,10 +70,9 @@
     {
       if (ModelState.IsValid)
       {
-        var entity = db.Tenants.Find(vm.TenantCode);
+        var entity = repo.Single(vm.TenantCode);
         Mapper.Map(vm, entity);
-        db.Entry(entity).State = EntityState.Modified;
-        db.SaveChanges();
+        repo.Update(entity);
         return RedirectToAction("Index");
       }
       return Edit(vm.TenantCode);
@@ -83,9 +82,7 @@
     [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
     public ActionResult DeleteConfirmed(string id)
     {
-      var entity = db.Tenants.Find(id);
-      db.Tenants.Remove(entity);
-      db.SaveChanges();
+      repo.Remove(id);
       return RedirectToAction("Index");
     }
 
@@ -96,21 +93,14 @@
     {
       var model = string.IsNullOrEmpty(id)
         ? new TenantViewModel()
-        : db.Tenants.Where(u => u.TenantCode == id).ProjectTo<TenantViewModel>().First();
+        : repo.ProjectToList<TenantViewModel>(id).Single();
       return FormActionResult(model, id);
     }
 
     // JSON results for filtered grid
     public async Task<JsonResult> Json(string tenantCode, string tenantName, bool? allowLogin)
     {
-      var results = await db.Tenants
-        .Where(u =>
-          (string.IsNullOrEmpty(tenantCode) || u.TenantCode.StartsWith(tenantCode)) &&
-          (string.IsNullOrEmpty(tenantName) || u.TenantName.StartsWith(tenantName)) &&
-          (allowLogin == null || u.AllowLogin == allowLogin)
-        )
-        .ProjectTo<TenantViewModel>()
-        .ToListAsync();
+      var results = await repo.ProjectToListAsync<TenantViewModel>(tenantCode, tenantName, allowLogin);
       return Json(results, JsonRequestBehavior.AllowGet);
     }
   }
