@@ -7,6 +7,13 @@
 
   public abstract class MultiTenantController : Controller
   {
+    private TenantData _repo;
+
+    public MultiTenantController()
+    {
+      _repo = new TenantData();
+    }
+
     public string ConnectionString;
 
     public string TenantCode
@@ -49,9 +56,7 @@
       }
       if (!string.IsNullOrEmpty(TenantCode) && TenantCode != Constants.Default.TenantCode)
       {
-        var repo = new TenantData();
-
-        var t = repo.Single(TenantCode);
+        var t = _repo.Single(TenantCode);
           
         if (!string.IsNullOrEmpty(t.ConnectionString))
         {

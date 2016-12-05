@@ -10,7 +10,7 @@
 
   public static class DbExtensions
   {
-    public static void ReadAllDateTimeValuesAsUtc(this TenantContext context)
+    public static void ReadAllDateTimeValuesAsUtc(this DbContext context)
     {
       ((IObjectContextAdapter)context).ObjectContext.ObjectMaterialized += ReadAllDateTimeValuesAsUtc;
     }

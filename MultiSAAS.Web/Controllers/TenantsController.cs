@@ -11,7 +11,12 @@
 
   public class TenantsController : MultiTenantController
   {
-    private TenantData repo = new TenantData();
+    private TenantData _repo;
+
+    public TenantsController(TenantData repo)
+    {
+      _repo = repo;
+    }
 
     #region GET
 
@@ -58,7 +63,7 @@
       {
         var entity = new Tenant();
         Mapper.Map(vm, entity);
-        repo.Add(entity);
+        _repo.Add(entity);
         return RedirectToAction("Index");
       }
       return Create();
@@ -70,9 +75,9 @@
     {
       if (ModelState.IsValid)
       {
-        var entity = repo.Single(vm.TenantCode);
+        var entity = _repo.Single(vm.TenantCode);
         Mapper.Map(vm, entity);
-        repo.Update(entity);
+        _repo.Update(entity);
         return RedirectToAction("Index");
       }
       return Edit(vm.TenantCode);
@@ -82,7 +87,7 @@
     [HttpPost, ValidateAntiForgeryToken, ActionName("Delete")]
     public ActionResult DeleteConfirmed(string id)
     {
-      repo.Remove(id);
+      _repo.Remove(id);
       return RedirectToAction("Index");
     }
 
@@ -93,14 +98,14 @@
     {
       var model = string.IsNullOrEmpty(id)
         ? new TenantViewModel()
-        : repo.ProjectToList<TenantViewModel>(id).Single();
+        : _repo.ProjectToList<TenantViewModel>(id).Single();
       return FormActionResult(model, id);
     }
 
     // JSON results for filtered grid
     public async Task<JsonResult> Json(string tenantCode, string tenantName, bool? allowLogin)
     {
-      var results = await repo.ProjectToListAsync<TenantViewModel>(tenantCode, tenantName, allowLogin);
+      var results = await _repo.ProjectToListAsync<TenantViewModel>(tenantCode, tenantName, allowLogin);
       return Json(results, JsonRequestBehavior.AllowGet);
     }
   }

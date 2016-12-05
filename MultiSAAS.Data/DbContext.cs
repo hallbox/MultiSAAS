@@ -8,16 +8,16 @@
   using Entities;
 
   [DbConfigurationType(typeof(DbConfiguration))]
-  public class TenantContext : System.Data.Entity.DbContext
+  public class DbContext : System.Data.Entity.DbContext
   {
     public const string DefaultTenantCode = Constants.Default.TenantCode;
     public const string DefaultUsername = Constants.Default.Username;
 
-    public TenantContext() : this("name=" + DefaultTenantCode)
+    public DbContext() : this("name=" + DefaultTenantCode)
     {
     }
 
-    public TenantContext(string name) : base(name)
+    public DbContext(string name) : base(name)
     {
       Username = DefaultUsername;
       this.ReadAllDateTimeValuesAsUtc();

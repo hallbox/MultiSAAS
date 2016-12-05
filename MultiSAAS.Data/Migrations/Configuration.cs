@@ -6,14 +6,14 @@ namespace MultiSAAS.Migrations
   using MultiSAAS.Data;
   using MultiSAAS.Data.Entities;
 
-  internal sealed class Configuration : DbMigrationsConfiguration<TenantContext>
+  internal sealed class Configuration : DbMigrationsConfiguration<DbContext>
   {
     public Configuration()
     {
       AutomaticMigrationsEnabled = false;
     }
 
-    protected override void Seed(TenantContext context)
+    protected override void Seed(DbContext context)
     {
       if (System.Diagnostics.Debugger.IsAttached == false)
       {
@@ -24,7 +24,7 @@ namespace MultiSAAS.Migrations
     }
 
     // http://www.blaiseliu.com/got-entityvalidationerrors-debug-into-entity-framework-code-first/
-    private static void SaveChanges(TenantContext context)
+    private static void SaveChanges(DbContext context)
     {
       try
       {

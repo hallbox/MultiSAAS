@@ -18,22 +18,22 @@
     protected void Application_Start()
     {
       var settings = System.Web.Configuration.WebConfigurationManager.OpenWebConfiguration("~").AppSettings.Settings;
-      
+
       Default.Username = settings["DefaultUsername"].Value;
       Default.TenantCode = settings["DefaultTenantCode"].Value;
 
       if (settings["DefaultUserPassword"] != null && settings["DefaultUserPassword"].Value.Length > 0)
       {
-        /*
-        var context = new TenantContext(Default.TenantCode);
-        context.Username = Default.Username;
-        context.Set<Tenant>().AddIfNotExists(new Tenant
+        var _tenantRepo = new TenantData();
+        _tenantRepo.Add(new Tenant
         {
           TenantCode = Default.TenantCode,
           TenantName = settings["DefaultTenantName"].Value,
           AllowLogin = true
-        });
-        context.Set<User>().AddIfNotExists(new User
+        }, true);
+
+        var _userRepo = new UserData();
+        _userRepo.Add(new User
         {
           Username = Default.Username,
           Password = settings["DefaultUserPassword"].Value.Encrypt(),
@@ -42,9 +42,7 @@
           EmailAddress = settings["DefaultUserEmailAddress"].Value,
           ExternalTenantCode = null,
           ExternalUsername = null
-        });
-        context.SaveChanges();
-        */
+        }, true);
       }
 
       FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);

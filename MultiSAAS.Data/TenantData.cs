@@ -8,32 +8,37 @@ namespace MultiSAAS.Data
 {
   public class TenantData
   {
+    private DbContext _context;
+
+    public TenantData() : this(new DbContext())
+    {
+    }
+
+    public TenantData(DbContext context)
+    {
+      _context = context;
+    }
+
     public async Task<List<ProjectTo>> ProjectToListAsync<ProjectTo>(string tenantCode = null, string tenantName = null, bool? allowLogin = null)
     {
-      using (var context = new TenantContext())
-      {
-        return await QueryableFromContext(context, tenantCode, tenantName, allowLogin).ProjectTo<ProjectTo>().ToListAsync();
-      }
+      return await Queryable(tenantCode, tenantName, allowLogin).ProjectTo<ProjectTo>().ToListAsync();
     }
 
     public List<ProjectTo> ProjectToList<ProjectTo>(string tenantCode = null, string tenantName = null, bool? allowLogin = null)
     {
-      using (var context = new TenantContext())
-      {
-        return QueryableFromContext(context, tenantCode, tenantName, allowLogin).ProjectTo<ProjectTo>().ToList();
-      }
+      return Queryable(tenantCode, tenantName, allowLogin).ProjectTo<ProjectTo>().ToList();
     }
 
-    public IQueryable QueryableFromContext(TenantContext context, string tenantCode = null, string tenantName = null, bool? allowLogin = null)
+    public IQueryable Queryable(string tenantCode = null, string tenantName = null, bool? allowLogin = null)
     {
-        var list = context.Tenants
-        .Where(u =>
-          (string.IsNullOrEmpty(tenantCode) || u.TenantCode.Equals(tenantCode)) &&
-          (string.IsNullOrEmpty(tenantName) || u.TenantName.StartsWith(tenantName)) &&
-          (allowLogin == null || u.AllowLogin == allowLogin)
-        )
-        .AsNoTracking();
-        return list;
+      var list = _context.Tenants
+      .Where(u =>
+        (string.IsNullOrEmpty(tenantCode) || u.TenantCode.Equals(tenantCode)) &&
+        (string.IsNullOrEmpty(tenantName) || u.TenantName.StartsWith(tenantName)) &&
+        (allowLogin == null || u.AllowLogin == allowLogin)
+      )
+      .AsNoTracking();
+      return list;
     }
 
     public Entities.Tenant Single(string id)
@@ -44,22 +49,23 @@ namespace MultiSAAS.Data
       }
       else
       {
-        using (var context = new TenantContext())
-        {
-          return context.Tenants.AsNoTracking().SingleOrDefault(u => u.TenantCode == id);
-        }
+        return _context.Tenants.Find(id);
       }
     }
 
-    public void Add(Entities.Tenant entity)
+    public void Add(Entities.Tenant entity, bool onlyIfNotExists = false)
     {
       if (entity != null)
       {
-        using (var context = new TenantContext())
+        if (onlyIfNotExists)
         {
-          context.Tenants.Add(entity);
-          context.SaveChanges();
+          _context.Tenants.AddIfNotExists(entity);
         }
+        else
+        {
+          _context.Tenants.Add(entity);
+        }
+        _context.SaveChanges();
       }
     }
 
@@ -67,11 +73,8 @@ namespace MultiSAAS.Data
     {
       if (entity != null)
       {
-        using (var context = new TenantContext())
-        {
-          context.Entry(entity).State = EntityState.Modified;
-          context.SaveChanges();
-        }
+        _context.Entry(entity).State = EntityState.Modified;
+        _context.SaveChanges();
       }
     }
 
@@ -79,11 +82,8 @@ namespace MultiSAAS.Data
     {
       if (!string.IsNullOrEmpty(id))
       {
-        using (var context = new TenantContext())
-        {
-          context.Tenants.Remove(context.Tenants.Find(id));
-          context.SaveChanges();
-        }
+        _context.Tenants.Remove(_context.Tenants.Find(id));
+        _context.SaveChanges();
       }
     }
 

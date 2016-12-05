@@ -13,8 +13,14 @@
 
   public class UsersController : MultiTenantController
   {
-    private UserData repo = new UserData();
-    private TenantData tenantRepo = new TenantData();
+    private UserData _repo;
+    private TenantData _tenantRepo;
+
+    public UsersController(UserData repo, TenantData tenantRepo)
+    {
+      _repo = repo;
+      _tenantRepo = tenantRepo;
+    }
 
     public ActionResult Index()
     {
@@ -25,7 +31,7 @@
     // JSON results for filtered grid
     public async Task<JsonResult> Json(string username, string firstName, string lastName, string emailAddress, bool? enabled)
     {
-      var results = await repo.ProjectToListAsync<UserViewModel>(username, firstName, lastName, emailAddress, enabled);
+      var results = await _repo.ProjectToListAsync<UserViewModel>(username, firstName, lastName, emailAddress, enabled);
       return Json(results, JsonRequestBehavior.AllowGet);
     }
 
@@ -34,10 +40,10 @@
     {
       var model = string.IsNullOrEmpty(id)
         ? new UserViewModel() { ExternalTenant = new Framework.SelectList() }
-        : repo.ProjectToList<UserViewModel>(id).Single();
+        : _repo.ProjectToList<UserViewModel>(id).Single();
       if (model != null)
       {
-        model.ExternalTenant = tenantRepo.ProjectToList<TenantViewModel>().ToSelectList(t => t.TenantCode, t => t.TenantName, model.ExternalTenant.SelectedValue, "");
+        model.ExternalTenant = _tenantRepo.ProjectToList<TenantViewModel>().ToSelectList(t => t.TenantCode, t => t.TenantName, model.ExternalTenant.SelectedValue, "");
       }
       return FormActionResult(model, id);
     }
@@ -64,7 +70,7 @@
       {
         var entity = new User();
         Mapper.Map(vm, entity);
-        repo.Add(entity);
+        _repo.Add(entity);
         return RedirectToAction("Index");
       }
       return Create();
@@ -84,9 +90,9 @@
     {
       if (ModelState.IsValid)
       {
-        User entity = repo.Single(vm.Username);
+        User entity = _repo.Single(vm.Username);
         Mapper.Map(vm, entity);
-        repo.Update(entity);
+        _repo.Update(entity);
         return RedirectToAction("Index");
       }
       return Edit(vm.Username);
@@ -107,7 +113,7 @@
     [ValidateAntiForgeryToken]
     public ActionResult DeleteConfirmed(string id)
     {
-      repo.Remove(id);
+      _repo.Remove(id);
       return RedirectToAction("Index");
     }
   }

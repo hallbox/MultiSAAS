@@ -16,6 +16,13 @@
   [AllowAnonymous]
   public class AuthenticationController : MultiTenantController
   {
+    private UserData _repo;
+
+    public AuthenticationController(UserData repo)
+    {
+      _repo = repo;
+    }
+
     private IAuthenticationManager AuthManager => HttpContext.GetOwinContext().Authentication;
 
     [AcceptVerbs(HttpVerbs.Get)]
@@ -36,10 +43,8 @@
         return View("Form", new LoginViewModel());
       }
 
-      var repo = new UserData();
-
       var encryptedPassword = model.Password.Encrypt();
-      var user = repo.Authenticate(model.Username, model.Password);
+      var user = _repo.Authenticate(model.Username, model.Password);
       
       if (user != null)
       {

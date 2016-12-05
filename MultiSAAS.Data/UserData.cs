@@ -9,25 +9,33 @@ namespace MultiSAAS.Data
 {
   public class UserData
   {
+    private readonly DbContext _context;
+
+    public UserData() : this(new DbContext())
+    {
+    }
+
+    public UserData(DbContext context)
+    {
+      _context = context;
+    }
+
     public async Task<List<ProjectTo>> ProjectToListAsync<ProjectTo>(string username, string firstName = null, string lastName = null, string emailAddress = null, bool? enabled = null)
     {
-      using (var context = new TenantContext())
-      {
-        return await QueryableFromContext(context, username, firstName, lastName, emailAddress, enabled).ProjectTo<ProjectTo>().ToListAsync();
-      }
+      return await Queryable(username, firstName, lastName, emailAddress, enabled).ProjectTo<ProjectTo>().ToListAsync();
     }
 
     public List<ProjectTo> ProjectToList<ProjectTo>(string username, string firstName = null, string lastName = null, string emailAddress = null, bool? enabled = null)
     {
-      using (var context = new TenantContext())
+      using (var context = new DbContext())
       {
-        return QueryableFromContext(context, username, firstName, lastName, emailAddress, enabled).ProjectTo<ProjectTo>().ToList();
+        return Queryable(username, firstName, lastName, emailAddress, enabled).ProjectTo<ProjectTo>().ToList();
       }
     }
 
-    private IQueryable QueryableFromContext(TenantContext context, string username, string firstName = null, string lastName = null, string emailAddress = null, bool? enabled = null)
+    private IQueryable Queryable(string username, string firstName = null, string lastName = null, string emailAddress = null, bool? enabled = null)
     {
-      var list = context.Users
+      var list = _context.Users
       .Include(u => u.ExternalTenant)
       .Where(u =>
         (string.IsNullOrEmpty(username) || u.Username.Equals(username)) &&
@@ -48,30 +56,29 @@ namespace MultiSAAS.Data
       }
       else
       {
-        using (var context = new TenantContext())
-        {
-          return context.Users.AsNoTracking().SingleOrDefault(u => u.Username == id);
-        }
+        return _context.Users.AsNoTracking().SingleOrDefault(u => u.Username == id);
       }
     }
 
     public Entities.User Authenticate(string id, string password)
     {
-      using (var context = new TenantContext())
-      {
-        return context.Users.First(u => u.Username == id && u.Password == password.Encrypt());
-      }
+      var encryptedPassword = password.Encrypt();
+      return _context.Users.FirstOrDefault(u => u.Username == id && u.Password == encryptedPassword);
     }
 
-    public void Add(Entities.User entity)
+    public void Add(Entities.User entity, bool onlyIfNotExists = false)
     {
       if (entity != null)
       {
-        using (var context = new TenantContext())
+        if (onlyIfNotExists)
         {
-          context.Users.Add(entity);
-          context.SaveChanges();
+          _context.Users.AddIfNotExists(entity);
         }
+        else
+        {
+          _context.Users.Add(entity);
+        }
+        _context.SaveChanges();
       }
     }
 
@@ -79,16 +86,13 @@ namespace MultiSAAS.Data
     {
       if (entity != null)
       {
-        using (var context = new TenantContext())
-        {
           if (string.IsNullOrEmpty(entity.Password))
           {
-            context.Users.Attach(entity);
-            context.Entry(entity).Property("Password").IsModified = false;
+            _context.Users.Attach(entity);
+            _context.Entry(entity).Property("Password").IsModified = false;
           }
-          context.Entry(entity).State = EntityState.Modified;
-          context.SaveChanges();
-        }
+          _context.Entry(entity).State = EntityState.Modified;
+          _context.SaveChanges();
       }
     }
 
@@ -96,11 +100,8 @@ namespace MultiSAAS.Data
     {
       if (!string.IsNullOrEmpty(id))
       {
-        using (var context = new TenantContext())
-        {
-          context.Users.Remove(context.Users.Find(id));
-          context.SaveChanges();
-        }
+          _context.Users.Remove(_context.Users.Find(id));
+          _context.SaveChanges();
       }
     }
 
