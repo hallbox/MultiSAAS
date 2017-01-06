@@ -13,7 +13,7 @@
     public const string DefaultTenantCode = Constants.Default.TenantCode;
     public const string DefaultUsername = Constants.Default.Username;
 
-    public DbContext() : this("name=" + DefaultTenantCode)
+    public DbContext() //: this("name=" + DefaultTenantCode)
     {
     }
 

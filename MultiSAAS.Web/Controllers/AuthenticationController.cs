@@ -42,8 +42,7 @@
       {
         return View("Form", new LoginViewModel());
       }
-
-      var encryptedPassword = model.Password.Encrypt();
+      
       var user = _repo.Authenticate(model.Username, model.Password);
       
       if (user != null)

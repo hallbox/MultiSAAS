@@ -11,10 +11,10 @@
     }
 
     [StringLength(Constants.StringLength.Username), Required, Key]
-    public string Username { get; set; }
+    public virtual string Username { get; set; }
 
     [StringLength(32)]
-    public string Password { get; set; }
+    public virtual string Password { get; set; }
 
     [StringLength(25), Required]
     public string FirstName { get; set; }

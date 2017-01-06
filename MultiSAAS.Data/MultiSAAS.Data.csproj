@@ -98,9 +98,9 @@
     <Content Include="LICENSE.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MultiSAAS.Domain\MultiSAAS.Domain.csproj">
-      <Project>{cfd69862-c21b-4032-9742-f332eaca8429}</Project>
-      <Name>MultiSAAS.Domain</Name>
+    <ProjectReference Include="..\MultiSAAS.Common\MultiSAAS.csproj">
+      <Project>{ba7741c5-3619-4ab4-a484-19727c65d3ed}</Project>
+      <Name>MultiSAAS</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
