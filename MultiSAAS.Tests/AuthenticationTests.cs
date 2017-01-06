@@ -32,7 +32,7 @@
       var userData = MockUserCredentials("user", "password");
 
       //Act
-      var User = userData.Authenticate("user", "abc");
+      var User = userData.Authenticate("user", "wrong");
 
       //Assert
       Assert.IsNull(User);
